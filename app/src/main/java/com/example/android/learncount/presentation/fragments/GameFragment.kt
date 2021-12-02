@@ -7,12 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.android.learncount.R
 import com.example.android.learncount.databinding.FragmentGameBinding
+import com.example.android.learncount.domain.entity.GameResult
+import com.example.android.learncount.domain.entity.GameSettings
+import com.example.android.learncount.domain.entity.Level
 import java.lang.RuntimeException
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val KEY_LEVEL = "level"
 
 /**
  * A simple [Fragment] subclass.
@@ -20,9 +22,8 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class GameFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    private lateinit var level: Level
 
     private var _binding: FragmentGameBinding? = null
     private val binding: FragmentGameBinding
@@ -30,10 +31,7 @@ class GameFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+        parseArgs()
     }
 
     override fun onCreateView(
@@ -44,27 +42,54 @@ class GameFragment : Fragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.tvOption1.setOnClickListener {
+            launchGameFinishedFragment(
+                GameResult(
+                    true,
+                    0,
+                    0,
+                    GameSettings(0, 0, 0, 0)
+                )
+            )
+        }
+    }
+
+    private fun launchGameFinishedFragment(gameResult: GameResult) {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(
+                R.id.main_container,
+                GameFinishedFragment.newInstance(gameResult)
+            ).addToBackStack(null)
+            .commit()
+    }
+
+    private fun parseArgs() {
+        level = requireArguments().getSerializable(KEY_LEVEL) as Level
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
     companion object {
+        const val NAME = "GameFragment"
+
         /**
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
          *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
+         * @param Level Level .
          * @return A new instance of fragment GameFragment.
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
+        fun newInstance(level: Level) =
             GameFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                    putSerializable(KEY_LEVEL, level)
                 }
             }
     }
