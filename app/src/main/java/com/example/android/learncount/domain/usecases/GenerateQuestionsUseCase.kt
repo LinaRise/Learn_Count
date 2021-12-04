@@ -7,7 +7,7 @@ import com.example.android.learncount.domain.repository.GameRepository
 class GenerateQuestionsUseCase(private val repository: GameRepository) {
 
     //if invoke operator used then you can call method by parameter declare generateQuestionsUseCase
-    operator fun invoke(masSumValue: Int): Question {
+    operator fun invoke(masSumValue: Int): Question? {
         return repository.generateQuestion(masSumValue, COUNT_OF_OPTIONS)
     }
 
