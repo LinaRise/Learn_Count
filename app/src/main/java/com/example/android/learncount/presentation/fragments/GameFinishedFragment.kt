@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.FragmentManager
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.example.android.learncount.R
 import com.example.android.learncount.databinding.FragmentGameBinding
 import com.example.android.learncount.databinding.FragmentGameFinishedBinding
@@ -15,7 +17,7 @@ import java.lang.RuntimeException
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val KEY_GAME_RESULT = "GAME_RESULT"
+ const val KEY_GAME_RESULT = "GAME_RESULT"
 
 /**
  * A simple [Fragment] subclass.
@@ -24,7 +26,7 @@ private const val KEY_GAME_RESULT = "GAME_RESULT"
  */
 class GameFinishedFragment : Fragment() {
     // TODO: Rename and change types of parameters
-    private lateinit var gameResult: GameResult
+    private val args by navArgs<GameFinishedFragmentArgs>()
 
     private var _binding: FragmentGameFinishedBinding? = null
     private val binding: FragmentGameFinishedBinding
@@ -32,9 +34,6 @@ class GameFinishedFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            gameResult = it.getParcelable<GameResult>(KEY_GAME_RESULT) as GameResult
-        }
     }
 
     override fun onCreateView(
@@ -47,16 +46,55 @@ class GameFinishedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                retryGame()
-            }
-        }
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,callback)
-        binding.buttonRetry.setOnClickListener{
+        setupClickListeners()
+        bindViews()
+    }
+
+    private fun setupClickListeners() {
+        binding.buttonRetry.setOnClickListener {
             retryGame()
         }
     }
+
+
+    private fun bindViews() {
+        with(binding) {
+            emojiResult.setImageResource(getSmileResId())
+            tvRequiredAnswers.text = String.format(
+                getString(R.string.required_score),
+                args.gameResult.gameSettings.minCountRightAnswers
+            )
+            tvScoreAnswers.text = String.format(
+                getString(R.string.score_answers),
+                args.gameResult.countOfRightAnswers
+            )
+            tvRequiredPercentage.text = String.format(
+                getString(R.string.required_percentage),
+                args.gameResult.gameSettings.minPercentageOfRightAnswers
+            )
+            tvScorePercentage.text = String.format(
+                getString(R.string.score_percentage),
+                getPercentOfRightAnswers()
+            )
+        }
+    }
+
+    private fun getSmileResId(): Int {
+        return if ( args.gameResult.winner) {
+            R.drawable.ic_smile
+        } else {
+            R.drawable.ic_sad
+        }
+    }
+
+    private fun getPercentOfRightAnswers() = with( args.gameResult) {
+        if (countOfQuestions == 0) {
+            0
+        } else {
+            ((countOfRightAnswers / countOfQuestions.toDouble()) * 100).toInt()
+        }
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -64,7 +102,7 @@ class GameFinishedFragment : Fragment() {
     }
 
     private fun retryGame() {
-        requireActivity().supportFragmentManager.popBackStack(GameFragment.NAME, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+       findNavController().popBackStack()
     }
 
     companion object {

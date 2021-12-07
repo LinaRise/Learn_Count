@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.example.android.learncount.R
 import com.example.android.learncount.databinding.FragmentGameBinding
 import com.example.android.learncount.domain.entity.GameResult
@@ -17,7 +19,7 @@ import java.lang.RuntimeException
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val KEY_LEVEL = "level"
+const val KEY_LEVEL = "level"
 
 /**
  * A simple [Fragment] subclass.
@@ -26,13 +28,16 @@ private const val KEY_LEVEL = "level"
  */
 class GameFragment : Fragment() {
 
-    private lateinit var level: Level
-    private val viewModel: GameViewModel by lazy {
-        ViewModelProvider(
-            this,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-        )[GameViewModel::class.java]
+
+    private val args by navArgs<GameFragmentArgs>()
+    private val viewModelFactory by lazy {
+        GameViewModelFactory(args.level, requireActivity().application)
     }
+
+    private val viewModel by lazy {
+        ViewModelProvider(this, viewModelFactory)[GameViewModel::class.java]
+    }
+
 
     private val tvOptions by lazy {
         mutableListOf<TextView>().apply {
@@ -51,7 +56,6 @@ class GameFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        parseArgs()
     }
 
     override fun onCreateView(
@@ -66,7 +70,6 @@ class GameFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         observeViewModel()
         setClickListenersToOptions()
-        viewModel.startGame(level)
     }
 
     private fun setClickListenersToOptions() {
@@ -121,19 +124,14 @@ class GameFragment : Fragment() {
     }
 
     private fun launchGameFinishedFragment(gameResult: GameResult) {
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(
-                R.id.main_container,
-                GameFinishedFragment.newInstance(gameResult)
-            ).addToBackStack(null)
-            .commit()
+        findNavController().navigate(GameFragmentDirections.actionGameFragment2ToGameFinishedFragment2(gameResult))
     }
 
-    private fun parseArgs() {
+    /*private fun parseArgs() {
         requireArguments().getParcelable<Level>(KEY_LEVEL)?.let {
             level = it
         }
-    }
+    }*/
 
     override fun onDestroyView() {
         super.onDestroyView()
